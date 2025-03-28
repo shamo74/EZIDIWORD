@@ -150,7 +150,7 @@
 </head>
 <body>
     <div class="dashboard">
-        <h1>لوحة تحكمالنصوص</h1>
+        <h1>لوحة تحكم</h1>
         <div class="toolbar">
             <button onclick="formatText('bold')" title="عريض">
                 <svg viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.84-4-4-4H7v14h7.04c2.09 0 3.96-1.7 3.96-3.81 0-1.39-.74-2.61-1.84-3.4zM9 6h4c1.1 0 2 .9 2 2s-.9 2-2 2H9V6zm4 12H9v-4h4c1.1 0 2 .9 2 2s-.9 2-2 2z"/></svg>
@@ -190,9 +190,15 @@
         <div class="preview" id="preview"></div>
     </div>
 
+    <!-- روابط CDN للمكتبات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
+        // التحقق من تحميل المكتبات
+        if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+            alert('فشل في تحميل مكتبات CDN. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.');
+        }
+
         const editor = document.getElementById('editor');
         const preview = document.getElementById('preview');
         let selectedImage = null;
@@ -253,6 +259,11 @@
         }
 
         async function downloadPDF() {
+            if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+                alert('المكتبات لم تُحمّل بعد. تأكد من اتصالك بالإنترنت.');
+                return;
+            }
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
                 orientation: 'p',
@@ -284,20 +295,22 @@
 
                 doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
-                // تحميل الملف مباشرة
                 const pdfBlob = doc.output('blob');
                 const url = window.URL.createObjectURL(pdfBlob);
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = fileName;
-                link.style.display = 'none'; // إخفاء الرابط
+                link.style.display = 'none';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                window.URL.revokeObjectURL(url); // تحرير الذاكرة
+                window.URL.revokeObjectURL(url);
+
+                // تنبيه عند اكتمال التحميل
+                alert('تم تحميل الملف بنجاح باسم: ' + fileName);
             } catch (error) {
-                console.error('حدث خطأ أثناء إنشاء PDF:', error);
-                alert('حدث خطأ أثناء تحميل الملف. حاول مرة أخرى.');
+                console.error('خطأ أثناء إنشاء PDF:', error);
+                alert('حدث خطأ أثناء تحميل الملف. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.');
             }
         }
     </script>
